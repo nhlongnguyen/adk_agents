@@ -1,5 +1,6 @@
 from google.adk.agents import Agent
-from ..tools.weather_tools import WeatherTools
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
+
 from ..tools.greeting_tools import GreetingTools
 import logging
 
@@ -16,10 +17,20 @@ class AgentFactory:
         Get the weather tools.
 
         Returns:
-            List of weather tools or empty list if failed
+            List of weather tools provided by MCP server
         """
         try:
-            weather_tools = [WeatherTools().get_weather]
+            weather_tools = [
+                MCPToolset(
+                    connection_params=StdioServerParameters(
+                        command='python',
+                        args=[
+                            "-m",
+                            "mcp_weather_server",
+                        ],
+                    ),
+                )
+            ]
             logging.debug("✅ Weather tools retrieved.")
             return weather_tools
         except Exception as e:
