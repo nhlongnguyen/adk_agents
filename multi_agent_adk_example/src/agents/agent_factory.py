@@ -1,5 +1,6 @@
 from google.adk.agents import Agent
 from ..tools.weather_tools import WeatherTools
+from ..tools.greeting_tools import GreetingTools
 import logging
 
 
@@ -24,6 +25,104 @@ class AgentFactory:
         except Exception as e:
             logging.debug(f"❌ Could not get weather tools. Error: {e}")
             return []
+
+    def get_greeting_tools(self):
+        """
+        Get the greeting tools.
+
+        Returns:
+            List of greeting tools or empty list if failed
+        """
+        try:
+            greeting_tools = [GreetingTools().say_hello]
+            logging.debug("✅ Greeting tools retrieved.")
+            return greeting_tools
+        except Exception as e:
+            logging.debug(f"❌ Could not get greeting tools. Error: {e}")
+            return []
+
+    def get_farewell_tools(self):
+        """
+        Get the farewell tools.
+
+        Returns:
+            List of farewell tools or empty list if failed
+        """
+        try:
+            farewell_tools = [GreetingTools().say_goodbye]
+            logging.debug("✅ Farewell tools retrieved.")
+            return farewell_tools
+        except Exception as e:
+            logging.debug(f"❌ Could not get farewell tools. Error: {e}")
+            return []
+
+    def create_greeting_agent(self, model: str):
+        """
+        Create a greeting agent with the specified configuration.
+
+        Args:
+            model: The model to use for the agent
+
+        Returns:
+            The created agent instance or None if creation failed
+        """
+        # Get greeting tools
+        greeting_tools = self.get_greeting_tools()
+
+        if greeting_tools:
+            try:
+                agent = Agent(
+                    model=model,
+                    name="greeting_agent",
+                    instruction="You are the Greeting Agent. Your ONLY task is to provide a friendly greeting to the user. "
+                                "Use the 'say_hello' tool to generate the greeting. "
+                                "If the user provides their name, make sure to pass it to the tool. "
+                                "Do not engage in any other conversation or tasks.",
+                    description="Handles simple greetings and hellos using the 'say_hello' tool.",
+                    tools=greeting_tools,
+                )
+                logging.debug(f"✅ Agent '{agent.name}' created using model '{agent.model}'.")
+                return agent
+            except Exception as e:
+                logging.debug(f"❌ Could not create Greeting agent. Check API Key ({model}). Error: {e}")
+                return None
+        else:
+            logging.debug("❌ Cannot create greeting agent because greeting tools are missing.")
+            return None
+
+    def create_farewell_agent(self, model: str):
+        """
+        Create a farewell agent with the specified configuration.
+
+        Args:
+            model: The model to use for the agent
+
+        Returns:
+            The created agent instance or None if creation failed
+        """
+        # Get farewell tools
+        farewell_tools = self.get_farewell_tools()
+
+        if farewell_tools:
+            try:
+                agent = Agent(
+                    model=model,
+                    name="farewell_agent",
+                    instruction="You are the Farewell Agent. Your ONLY task is to provide a polite goodbye message. "
+                                "Use the 'say_goodbye' tool when the user indicates they are leaving or ending the conversation "
+                                "(e.g., using words like 'bye', 'goodbye', 'thanks bye', 'see you'). "
+                                "Do not perform any other actions.",
+                    description="Handles simple farewells and goodbyes using the 'say_goodbye' tool.",
+                    tools=farewell_tools,
+                )
+                logging.debug(f"✅ Agent '{agent.name}' created using model '{agent.model}'.")
+                return agent
+            except Exception as e:
+                logging.debug(f"❌ Could not create Farewell agent. Check API Key ({model}). Error: {e}")
+                return None
+        else:
+            logging.debug("❌ Cannot create farewell agent because farewell tools are missing.")
+            return None
 
     def create_weather_agent(self, model: str, greeting_agent, farewell_agent):
         """
